@@ -66,6 +66,13 @@ class ServerTests(unittest.TestCase):
             executable.chmod(0o700)
             self.assertEqual(DoubaoOnlineEngine(executable).transcribe(b"\0" * 320), "完整文本")
 
+    def test_online_cli_does_not_return_timing_when_speech_is_empty(self):
+        with tempfile.TemporaryDirectory() as directory:
+            executable = Path(directory) / "vk-test"
+            executable.write_text("#!/bin/sh\nprintf 'FINAL: (3.31s) (3.26s)\\n'\n")
+            executable.chmod(0o700)
+            self.assertEqual(DoubaoOnlineEngine(executable).transcribe(b"\0" * 320), "")
+
 
 if __name__ == "__main__":
     unittest.main()

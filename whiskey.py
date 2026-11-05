@@ -5,6 +5,7 @@ import argparse
 import base64
 import io
 import json
+import re
 import select
 import subprocess
 import sys
@@ -169,7 +170,7 @@ class DoubaoOnlineEngine:
         final = next((line.removeprefix("FINAL: ") for line in reversed(completed.stdout.splitlines()) if line.startswith("FINAL: ")), None)
         if final is None:
             raise RuntimeError("VoiceKey returned no final transcript")
-        return final.rpartition(" (")[0].strip() or final.strip()
+        return re.sub(r"(?:\s*\(\d+(?:\.\d+)?s\))+$", "", final).strip()
 
 
 def make_handler(engine):
@@ -204,8 +205,6 @@ def make_handler(engine):
                     raise ValueError("missing file part")
                 pcm = pcm16_mono_16k(file_part.get_payload(decode=True))
                 text = engine.transcribe(pcm)
-                if not text:
-                    return self._json(422, {"error": "no speech detected"})
                 self._json(200, {"text": text})
             except ValueError as error:
                 self._json(400, {"error": str(error)})
